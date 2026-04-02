@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ID Card Generator</title>
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin: 8px 0;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-btn { background: #007bff; color: white; }
+.download-btn { background: #28a745; color: white; }
+.new-btn { background: #ff9800; color: white; }
+
+#card {
+    display: none;
+    text-align: center;
+}
+
+.id-card {
+    width: 300px;
+    padding: 15px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    margin: auto;
+}
+
+.id-card img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid white;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<div id="formSection">
+    <h2>Employee Details</h2>
+    <form id="employeeForm">
+        <input type="text" name="employeeId" placeholder="Employee ID" required>
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="date" name="dob" required>
+        <input type="tel" name="mobile" placeholder="Mobile Number" required>
+        <input type="file" name="photo" accept="image/*" required>
+        <button class="submit-btn" type="submit">Generate ID Card</button>
+    </form>
+</div>
+
+<div id="card">
+    <div class="id-card" id="idCard">
+        <h3>Company Name</h3>
+        <img id="cardPhoto" src="" />
+        <h2 id="cardName"></h2>
+        <p id="cardId"></p>
+        <p id="cardDob"></p>
+        <p id="cardMobile"></p>
+    </div>
+
+    <button class="download-btn" onclick="downloadCard()">Download</button>
+    <button class="new-btn" onclick="resetForm()">Create New ID</button>
+</div>
+
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<script>
+document.getElementById("employeeForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const file = form.photo.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function() {
+        document.getElementById("cardPhoto").src = reader.result;
+    };
+    reader.readAsDataURL(file);
+
+    document.getElementById("cardName").innerText = form.name.value;
+    document.getElementById("cardId").innerText = "ID: " + form.employeeId.value;
+    document.getElementById("cardDob").innerText = "DOB: " + form.dob.value;
+    document.getElementById("cardMobile").innerText = "Mobile: " + form.mobile.value;
+
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("card").style.display = "block";
+
+    // Send to n8n webhook
+    const formData = new FormData(form);
+    fetch("https://muskaan-workflow.ifsjaipur.cloud/app/2b446daf-74f4-401a-a9c9-f81184c076b6", {
+        method: "POST",
+        body: formData
+    });
+});
+
+function downloadCard() {
+    html2canvas(document.getElementById("idCard")).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "id-card.png";
+        link.href = canvas.toDataURL();
+        link.click();
+    });
+}
+
+function resetForm() {
+    document.getElementById("employeeForm").reset();
+    document.getElementById("formSection").style.display = "block";
+    document.getElementById("card").style.display = "none";
+}
+</script>
+
+</body>
+</html>
